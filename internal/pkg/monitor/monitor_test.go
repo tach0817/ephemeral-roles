@@ -7,7 +7,6 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 
-	"github.com/ewohltman/ephemeral-roles/internal/pkg/logging"
 	"github.com/ewohltman/ephemeral-roles/internal/pkg/mock"
 	"github.com/ewohltman/ephemeral-roles/internal/pkg/monitor"
 )
@@ -64,8 +63,7 @@ func newTestMetrics() (*monitor.Metrics, *discordgo.Session, error) {
 	}
 
 	config := &monitor.Config{
-		// Log:      mock.NewLogger(),
-		Log:      logging.New(),
+		Log:      mock.NewLogger(),
 		Session:  mockSession,
 		Interval: testMonitorInterval,
 	}

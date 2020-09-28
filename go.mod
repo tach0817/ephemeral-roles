@@ -8,6 +8,7 @@ require (
 	github.com/HdrHistogram/hdrhistogram-go v0.9.0 // indirect
 	github.com/bwmarrin/discordgo v0.22.0
 	github.com/caarlos0/env v3.5.0+incompatible
+	github.com/golang/protobuf v1.4.3
 	github.com/kz/discordrus v1.2.0
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/prometheus/client_golang v1.8.0
@@ -16,5 +17,6 @@ require (
 	github.com/uber/jaeger-lib v2.4.0+incompatible
 	go.uber.org/atomic v1.7.0 // indirect
 	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a // indirect
-	google.golang.org/protobuf v1.25.0 // indirect
+	google.golang.org/grpc v1.32.0
+	google.golang.org/protobuf v1.25.0
 )

@@ -135,6 +135,7 @@ func testLogger() *Logger {
 	log := New(
 		OptionalOutput(ioutil.Discard),
 		OptionalShardID(0),
+		OptionalOutput(ioutil.Discard),
 		OptionalLogLevel("info"),
 		OptionalTimezoneLocation("xyz"),
 		OptionalTimezoneLocation("America/New_York"),

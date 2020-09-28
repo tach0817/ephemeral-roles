@@ -31,6 +31,11 @@ func (logger *Logger) WrappedLogger() *logrus.Logger {
 }
 
 // UpdateLevel is a mock stub of the *logging.Logger UpdateLevel method.
+func (logger *Logger) Level() string {
+	return logger.Logger.Level.String()
+}
+
+// UpdateLevel is a mock stub of the *logging.Logger UpdateLevel method.
 func (logger *Logger) UpdateLevel(level string) {
 	// Nop
 }

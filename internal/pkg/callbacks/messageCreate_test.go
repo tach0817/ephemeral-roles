@@ -56,7 +56,7 @@ func TestConfig_MessageCreate(t *testing.T) {
 		MessageCreateCounter: monitor.MessageCreateCounter(monitorConfig),
 	}
 
-	originalLogLevel := log.Level.String()
+	originalLogLevel := log.Level()
 
 	sendBotMessage(session, config)
 

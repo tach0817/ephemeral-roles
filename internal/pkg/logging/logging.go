@@ -40,6 +40,7 @@ const (
 type Interface interface {
 	logrus.FieldLogger
 	WrappedLogger() *logrus.Logger
+	Level() string
 	UpdateLevel(level string)
 	UpdateDiscordrus()
 	DiscordGoLogf(discordgoLevel, caller int, format string, arguments ...interface{})
@@ -97,6 +98,13 @@ func OptionalShardID(shardID int) OptionFunc {
 	}
 }
 
+// OptionalOutput returns an OptionFunc to configure a *Logger output.
+func OptionalOutput(output io.Writer) OptionFunc {
+	return func(logger *Logger) {
+		logger.Logger.SetOutput(output)
+	}
+}
+
 // OptionalLogLevel returns an OptionFunc to configure a *Logger log level.
 func OptionalLogLevel(logLevel string) OptionFunc {
 	return func(logger *Logger) {
@@ -133,6 +141,14 @@ func (logger *Logger) WrappedLogger() *logrus.Logger {
 	defer logger.Mutex.Unlock()
 
 	return logger.Logger
+}
+
+// Level returns the current logging level.
+func (logger *Logger) Level() string {
+	logger.Mutex.Lock()
+	defer logger.Mutex.Unlock()
+
+	return logger.Logger.Level.String()
 }
 
 // UpdateLevel allows for runtime updates of the logging level.

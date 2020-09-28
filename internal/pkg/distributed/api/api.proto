@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+option go_package = "github.com/ewohltman/ephemeral-roles/internal/pkg/distributed/api";
+
+package api;
+
+service API {
+  rpc GetLogLevel(GetLogLevelParameters) returns (stream LogLevel) {}
+  rpc SetLogLevel(LogLevel) returns (SetLogLevelResponse) {}
+}
+
+message GetLogLevelParameters{}
+
+message LogLevel {
+  string level = 1;
+}
+
+message SetLogLevelResponse{}
