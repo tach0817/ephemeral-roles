@@ -8,6 +8,7 @@ require (
 	github.com/HdrHistogram/hdrhistogram-go v0.9.0 // indirect
 	github.com/bwmarrin/discordgo v0.22.0
 	github.com/caarlos0/env v3.5.0+incompatible
+	github.com/google/gofuzz v1.2.0
 	github.com/kz/discordrus v1.2.0
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/prometheus/client_golang v1.8.0

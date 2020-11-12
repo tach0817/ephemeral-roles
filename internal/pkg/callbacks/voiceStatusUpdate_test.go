@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
+	fuzz "github.com/google/gofuzz"
 
 	"github.com/ewohltman/ephemeral-roles/internal/pkg/callbacks"
 	"github.com/ewohltman/ephemeral-roles/internal/pkg/http"
@@ -64,6 +65,8 @@ func TestConfig_VoiceStateUpdate(t *testing.T) {
 	sendUpdate(session, config, mock.TestGuild, mock.TestUser, "")
 	sendUpdate(session, config, mock.TestGuildLarge, mock.TestUser, mock.TestChannel)
 	sendUpdate(session, config, mock.TestGuildLarge, mock.TestUser, "")
+
+	sendFuzzUpdate(session, config)
 }
 
 func sendUpdate(session *discordgo.Session, config *callbacks.Config, guildID, userID, channelID string) {
@@ -77,4 +80,14 @@ func sendUpdate(session *discordgo.Session, config *callbacks.Config, guildID, u
 			},
 		},
 	)
+}
+
+func sendFuzzUpdate(session *discordgo.Session, config *callbacks.Config) {
+	fuzzer := fuzz.New().NilChance(0)
+
+	vsuFuzz := &discordgo.VoiceStateUpdate{}
+
+	fuzzer.Fuzz(vsuFuzz)
+
+	config.VoiceStateUpdate(session, vsuFuzz)
 }
