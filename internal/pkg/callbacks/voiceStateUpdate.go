@@ -15,6 +15,9 @@ import (
 const (
 	voiceStateUpdate           = "VoiceStateUpdate"
 	voiceStateUpdateEventError = "Unable to process event: " + voiceStateUpdate
+
+	roleHoist   = true
+	roleMention = true
 )
 
 type voiceStateUpdateMetadata struct {
@@ -77,7 +80,7 @@ func (handler *Handler) parseEvent(
 	session *discordgo.Session,
 	voiceState *discordgo.VoiceStateUpdate,
 ) (*voiceStateUpdateMetadata, error) {
-	guild, err := operations.LookupGuild(session, voiceState.GuildID)
+	guild, err := operations.LookupGuild(handler.FlightGroup, session, voiceState.GuildID)
 	if err != nil {
 		return nil, fmt.Errorf("unable to lookup Guild: %w", err)
 	}
@@ -119,7 +122,11 @@ func (handler *Handler) parseEvent(
 
 	ephemeralRole, err := handler.lookupGuildRole(guild, channel)
 	if errors.Is(err, &RoleNotFound{}) {
-		ephemeralRole, err = handler.createRole(guild, handler.RoleNameFromChannel(channel.Name))
+		ephemeralRole, err = handler.createRole(
+			session,
+			guild,
+			handler.RoleNameFromChannel(channel.Name),
+		)
 		if err != nil {
 			switch {
 			case operations.IsDeadlineExceeded(err):
@@ -252,28 +259,35 @@ func (handler *Handler) lookupGuildRole(guild *discordgo.Guild, channel *discord
 	return nil, &RoleNotFound{}
 }
 
-func (handler *Handler) createRole(guild *discordgo.Guild, roleName string) (*discordgo.Role, error) {
-	resultChannel := operations.NewResultChannel()
-
-	handler.OperationsGateway.Process(resultChannel, &operations.Request{
-		Type: operations.CreateRole,
-		CreateRole: &operations.CreateRoleRequest{
-			Guild:     guild,
-			RoleName:  roleName,
-			RoleColor: handler.RoleColor,
+func (handler *Handler) createRole(
+	session *discordgo.Session,
+	guild *discordgo.Guild,
+	roleName string,
+) (*discordgo.Role, error) {
+	object, err, _ := handler.FlightGroup.Do(
+		fmt.Sprintf("%s:%s", guild.ID, roleName),
+		func() (interface{}, error) {
+			return createRole(
+				session,
+				guild,
+				roleName,
+				handler.RoleColor,
+			)
 		},
-	})
-
-	result := <-resultChannel
-
-	switch typedResult := result.(type) {
-	case *discordgo.Role:
-		return typedResult, nil
-	case error:
-		return nil, typedResult
-	default:
-		return nil, fmt.Errorf("unrecognized operations result type: %T", typedResult)
+	)
+	if err != nil {
+		return nil, err
 	}
+
+	role, ok := object.(*discordgo.Role)
+	if !ok {
+		return nil, fmt.Errorf(
+			"unable to type assert to *discordgo.Role: %T",
+			object,
+		)
+	}
+
+	return role, nil
 }
 
 func (handler *Handler) addEphemeralRole(metadata *voiceStateUpdateMetadata) error {
@@ -320,4 +334,32 @@ func (handler *Handler) removeEphemeralRole(metadata *voiceStateUpdateMetadata, 
 	}
 
 	return nil
+}
+
+func createRole(
+	session *discordgo.Session,
+	guild *discordgo.Guild,
+	roleName string,
+	roleColor int,
+) (*discordgo.Role, error) {
+	role, err := session.GuildRoleCreate(guild.ID)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create ephemeral role: %w", err)
+	}
+
+	role, err = session.GuildRoleEdit(
+		guild.ID, role.ID,
+		roleName, roleColor,
+		roleHoist, role.Permissions, roleMention,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("unable to edit ephemeral role: %w", err)
+	}
+
+	err = session.State.RoleAdd(guild.ID, role)
+	if err != nil {
+		return nil, fmt.Errorf("unable to add ephemeral role to state cache: %w", err)
+	}
+
+	return role, nil
 }

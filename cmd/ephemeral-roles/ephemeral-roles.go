@@ -19,12 +19,12 @@ import (
 	"github.com/caarlos0/env"
 	"github.com/opentracing/opentracing-go"
 	"go.uber.org/automaxprocs/maxprocs"
+	"golang.org/x/sync/singleflight"
 
 	"github.com/ewohltman/ephemeral-roles/internal/pkg/callbacks"
 	internalHTTP "github.com/ewohltman/ephemeral-roles/internal/pkg/http"
 	"github.com/ewohltman/ephemeral-roles/internal/pkg/logging"
 	"github.com/ewohltman/ephemeral-roles/internal/pkg/monitor"
-	"github.com/ewohltman/ephemeral-roles/internal/pkg/operations"
 	"github.com/ewohltman/ephemeral-roles/internal/pkg/tracer"
 )
 
@@ -105,7 +105,7 @@ func startSession(
 			ReadyCounter:            callbackMetrics.ReadyCounter,
 			MessageCreateCounter:    callbackMetrics.MessageCreateCounter,
 			VoiceStateUpdateCounter: callbackMetrics.VoiceStateUpdateCounter,
-			OperationsGateway:       operations.NewGateway(session),
+			FlightGroup:             &singleflight.Group{},
 		},
 	)
 

@@ -16,5 +16,6 @@ require (
 	github.com/uber/jaeger-lib v2.4.1+incompatible
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/automaxprocs v1.4.0
+	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a
 	google.golang.org/protobuf v1.25.0 // indirect
 )

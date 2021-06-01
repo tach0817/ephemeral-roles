@@ -6,11 +6,11 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/ewohltman/discordgo-mock/mockconstants"
+	"golang.org/x/sync/singleflight"
 
 	"github.com/ewohltman/ephemeral-roles/internal/pkg/callbacks"
 	"github.com/ewohltman/ephemeral-roles/internal/pkg/mock"
 	"github.com/ewohltman/ephemeral-roles/internal/pkg/monitor"
-	"github.com/ewohltman/ephemeral-roles/internal/pkg/operations"
 	"github.com/ewohltman/ephemeral-roles/internal/pkg/tracer"
 )
 
@@ -42,7 +42,7 @@ func TestHandler_VoiceStateUpdate(t *testing.T) {
 		JaegerTracer:            jaegerTracer,
 		ContextTimeout:          time.Second,
 		VoiceStateUpdateCounter: monitor.VoiceStateUpdateCounter(&monitor.Config{Log: log}),
-		OperationsGateway:       operations.NewGateway(session),
+		FlightGroup:             &singleflight.Group{},
 	}
 
 	type testCase struct {

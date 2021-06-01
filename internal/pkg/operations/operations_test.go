@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"sync"
 	"testing"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/ewohltman/discordgo-mock/mockconstants"
+	"golang.org/x/sync/singleflight"
 
 	"github.com/ewohltman/ephemeral-roles/internal/pkg/callbacks"
 	"github.com/ewohltman/ephemeral-roles/internal/pkg/mock"
@@ -33,55 +33,20 @@ type roleForMemberTestCase struct {
 	)
 }
 
-const duplicateRequests = 5
-
-func TestNewGateway(t *testing.T) {
-	if operations.NewGateway(nil) == nil {
-		t.Error("unexpected nil queue")
-	}
-}
-
-func TestGateway_Process(t *testing.T) {
-	roleNames := []string{mockconstants.TestRole, mockconstants.TestRole + "2"}
-
-	session, err := mock.NewSession()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	gateway := operations.NewGateway(session)
-	waitGroup := &sync.WaitGroup{}
-
-	runTestRequestUnknown(t, gateway)
-
-	for _, roleName := range roleNames {
-		roleName := roleName
-
-		for i := 0; i < duplicateRequests; i++ {
-			waitGroup.Add(1)
-
-			go func() {
-				defer waitGroup.Done()
-				runTestRequestCreateRole(t, gateway, roleName)
-			}()
-		}
-	}
-
-	waitGroup.Wait()
-}
-
 func TestLookupGuild(t *testing.T) {
+	flightGroup := &singleflight.Group{}
+
 	session, err := mock.NewSession()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = operations.LookupGuild(session, mockconstants.TestGuild)
+	_, err = operations.LookupGuild(flightGroup, session, mockconstants.TestGuild)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = operations.LookupGuild(session, mockconstants.TestGuildLarge)
+	_, err = operations.LookupGuild(flightGroup, session, mockconstants.TestGuildLarge)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -212,40 +177,6 @@ func TestBotHasChannelPermission(t *testing.T) {
 	err = operations.BotHasChannelPermission(session, testChannelWithoutPermission)
 	if err == nil {
 		t.Error("unexpected nil error")
-	}
-}
-
-func runTestRequestUnknown(t *testing.T, gateway callbacks.OperationsGateway) {
-	runTest(t, gateway, true, &operations.Request{
-		Type: operations.RequestType(-1),
-	})
-}
-
-func runTestRequestCreateRole(t *testing.T, gateway callbacks.OperationsGateway, roleName string) {
-	runTest(t, gateway, false, &operations.Request{
-		Type: operations.CreateRole,
-		CreateRole: &operations.CreateRoleRequest{
-			Guild:    &discordgo.Guild{ID: mockconstants.TestGuild},
-			RoleName: roleName,
-		},
-	})
-}
-
-func runTest(t *testing.T, gateway callbacks.OperationsGateway, expectError bool, request *operations.Request) {
-	resultChannel := operations.NewResultChannel()
-
-	gateway.Process(resultChannel, request)
-
-	result := <-resultChannel
-
-	_, resultError := result.(error)
-	if resultError != expectError {
-		if resultError {
-			t.Errorf("%s", result)
-			return
-		}
-
-		t.Errorf("unexpected success for request type %q", request.Type)
 	}
 }
 
