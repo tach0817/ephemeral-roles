@@ -41,8 +41,8 @@ type environmentVariables struct {
 	DiscordrusWebHookURL string `env:"DISCORDRUS_WEBHOOK_URL"`
 	Port                 string `env:"PORT" envDefault:"8081"`
 	BotName              string `env:"BOT_NAME" envDefault:"Ephemeral Roles"`
-	BotKeyword           string `env:"BOT_KEYWORD" envDefault:"!eph"`
-	RolePrefix           string `env:"ROLE_PREFIX" envDefault:"{eph}"`
+	BotKeyword           string `env:"BOT_KEYWORD" envDefault:"声がない"`
+	RolePrefix           string `env:"ROLE_PREFIX" envDefault:"[声無し用]"`
 	RoleColor            int    `env:"ROLE_COLOR_HEX2DEC" envDefault:"16753920"`
 	InstanceName         string `env:"INSTANCE_NAME" envDefault:"ephemeral-roles-0"`
 	ShardCount           int    `env:"SHARD_COUNT" envDefault:"1"`
